@@ -1,0 +1,55 @@
+#!/bin/bash
+echo "Running bootstrap script..."
+
+OS_TYPE="$(uname)"
+STAGED=()
+
+cleanup() {
+    echo "COMPLETE!"
+}
+
+install() {
+    case "$OS_TYPE" in
+        Linux)
+            sudo apt update
+            sudo apt install "${STAGED[@]}"
+            ;;
+        Darwin)
+            brew update
+            brew install "${STAGED[@]}"
+            ;;
+        *)
+            echo "Unsupported OS: $OS_TYPE"
+            exit 1
+            ;;
+    esac
+}
+
+stage_dev_tools() {
+    GROUP_PACKAGES=("git" "nvim" "nap" "pet" "yazi")
+    STAGED+=("${GROUP_PACKAGES[@]}")
+}
+
+stage_sys_utils() {
+    GROUP_PACKAGES=("bat" "eza" "dust" "duf" "fd" "fzf" "ripgrep" "btop" "procs" "tealdeer" "zoxide")
+    STAGED+=("${GROUP_PACKAGES[@]}")
+}
+
+stage_charm_tools() {
+    if [ "$OS_TYPE" = "Darwin" ]; then
+        brew tap charmbracelet/tap
+    fi
+
+    GROUP_PACKAGES=("mods" "pop" "gum")
+    STAGED+=("${GROUP_PACKAGES[@]}")
+}
+
+stage() {
+    stage_dev_tools
+    stage_sys_utils
+    stage_charm_tools
+}
+
+stage
+install
+cleanup
